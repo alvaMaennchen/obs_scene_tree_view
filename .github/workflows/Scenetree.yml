@@ -12,7 +12,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout plugin code
         uses: actions/checkout@v4
 
       - name: Setup CMake
@@ -31,10 +31,23 @@ jobs:
           target: desktop
           arch: win64_msvc2019_64
 
-      - name: Configure project
-        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH=%Qt6_DIR%
+      - name: Checkout OBS Studio
+        uses: actions/checkout@v4
+        with:
+          repository: obsproject/obs-studio
+          ref: 29.1.3   # stabile OBS-Version, kannst du ändern
+          path: obs-studio
 
-      - name: Build project
+      - name: Configure OBS Studio
+        run: cmake -S obs-studio -B obs-build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DDISABLE_UI=ON
+
+      - name: Build OBS Studio (libobs only)
+        run: cmake --build obs-build --config Release --target libobs
+
+      - name: Configure plugin
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="%Qt6_DIR%;${{ github.workspace }}/obs-build"
+
+      - name: Build plugin
         run: cmake --build build --config Release
 
       - name: Upload DLL artifact
