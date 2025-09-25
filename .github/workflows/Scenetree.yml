@@ -21,13 +21,13 @@ jobs:
           version: '6.6.2'
           arch: 'win64_msvc2019_64'
 
-      - name: Download OBS SDK
+      - name: Download OBS dependencies
         run: |
-          curl -L -o obs-dev.zip https://github.com/obsproject/obs-studio/releases/download/31.0.0/obs-studio-dev-31.0.0-windows.zip
-          7z x obs-dev.zip -oobs-sdk
+          curl -L -o obs-deps.zip https://github.com/obsproject/obs-deps/releases/download/2024-06-18/win64-deps-2024-06-18.zip
+          7z x obs-deps.zip -oobs-deps
 
       - name: Configure CMake
-        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }};${{ github.workspace }}/obs-sdk"
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }};${{ github.workspace }}/obs-deps"
 
       - name: Build
         run: cmake --build build --config Release
