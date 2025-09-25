@@ -4,22 +4,33 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
 
       - name: Download OBS Plugin SDK
         run: |
-          curl -L -o obs-dev.zip https://github.com/obsproject/obs-studio/releases/download/32.0.1/obs-studio-dev-32.0.1-windows-x64.zip
+          curl -L -o obs-dev.zip https://github.com/obsproject/obs-studio/releases/download/32.0.1/obs-studio-dev-32.0.1-windows.zip
           mkdir obs-sdk
-          tar -xf obs-dev.zip -C obs-sdk
+          7z x obs-dev.zip -oobs-sdk
 
       - name: Configure CMake
-        run: |
-          cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\\obs-sdk"
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ github.workspace }}/obs-sdk"
 
       - name: Build
         run: cmake --build build --config Release
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: obs-scene-tree-view
+          path: build/Release/*.dll
