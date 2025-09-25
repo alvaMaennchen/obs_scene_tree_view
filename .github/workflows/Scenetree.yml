@@ -1,37 +1,39 @@
-name: Build OBS Scene Tree View
+name: Build OBS Scene Tree
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   build-windows:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v3
 
-      - name: Set up Visual Studio
-        uses: microsoft/setup-msbuild@v1.3.1
-
-      - name: Install CMake and Ninja
-        uses: lukka/get-cmake@v3.27.7
-
-      - name: Download OBS Plugin SDK (31.0.0)
+      - name: Install dependencies
         run: |
-          curl -L -o obs-dev.zip https://github.com/obsproject/obs-studio/releases/download/31.0.0/obs-studio-dev-31.0.0-windows.zip
-          mkdir obs-sdk
-          7z x obs-dev.zip -oobs-sdk
+          choco install -y cmake ninja git
 
-      - name: Configure CMake
+      - name: Download OBS Studio SDK
         run: |
-          cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\obs-sdk"
+          git clone --branch 32.0.1 --depth=1 https://github.com/obsproject/obs-studio.git
+          mkdir obs-build
+          cd obs-build
+          cmake -DENABLE_UI=OFF -DENABLE_SCRIPTING=OFF -DENABLE_PIPEWIRE=OFF -DENABLE_VST=OFF -DCMAKE_INSTALL_PREFIX=../obs-install ../obs-studio -G "Ninja"
+          cmake --build . --target install --config Release
+          cd ..
 
-      - name: Build
-        run: cmake --build build --config Release
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: obs-scene-tree-view
-          path: build/Release/*.dll
+      - name: Configure plugin build
+        run: |
+          mkdir build
+          cd build
+          cmake -DLIBOBS_INCLUDE_DIR="../obs-install/include" -DLIBOBS_LIB="../obs-install/lib/obs.lib" ..
+      
+      - name: Build plugin
+        run: |
+          cd build
+          cmake --build . --config Release
