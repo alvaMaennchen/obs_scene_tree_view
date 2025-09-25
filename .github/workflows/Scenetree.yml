@@ -31,21 +31,14 @@ jobs:
           target: desktop
           arch: win64_msvc2019_64
 
-      - name: Checkout OBS Studio
-        uses: actions/checkout@v4
-        with:
-          repository: obsproject/obs-studio
-          ref: 29.1.3   # stabile OBS-Version, kannst du ändern
-          path: obs-studio
-
-      - name: Configure OBS Studio
-        run: cmake -S obs-studio -B obs-build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DDISABLE_UI=ON
-
-      - name: Build OBS Studio (libobs only)
-        run: cmake --build obs-build --config Release --target libobs
+      - name: Download OBS Plugin SDK
+        run: |
+          curl -L -o obs-dev.zip https://github.com/obsproject/obs-studio/releases/download/29.1.3/obs-studio-dev-29.1.3-windows.zip
+          mkdir obs-sdk
+          tar -xf obs-dev.zip -C obs-sdk
 
       - name: Configure plugin
-        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="%Qt6_DIR%;${{ github.workspace }}/obs-build"
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="%Qt6_DIR%;${{ github.workspace }}/obs-sdk"
 
       - name: Build plugin
         run: cmake --build build --config Release
