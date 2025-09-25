@@ -19,7 +19,7 @@ jobs:
 
       - name: Download OBS Plugin SDK
         run: |
-          curl -L -o obs-dev.zip https://github.com/obsproject/obs-studio/releases/download/32.0.1/obs-studio-dev-32.0.1-windows-x64.zip
+          curl -L -o obs-dev.zip https://github.com/obsproject/obs-studio/releases/download/32.0.1/obs-studio-dev-32.0.1-windows.zip
           mkdir obs-sdk
           7z x obs-dev.zip -oobs-sdk
 
